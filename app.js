@@ -1,34 +1,55 @@
+const express = require('express');
 const { google } = require('googleapis');
 const { OAuth2Client } = require('google-auth-library');
 const { Buffer } = require('buffer');
 
+const app = express();
+
+const CLIENT_ID =
+	'288700057470-g0svhjpi310npkrdd3dmo4bsn1opfupf.apps.googleusercontent.com';
+const CLIENT_SECRET = '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';
+const REDIRECT_URI = 'http://localhost:8001/oauth2callback';
+
+// Scopes that we need for Gmail API
+const SCOPES = [
+	'https://www.googleapis.com/auth/gmail.readonly',
+	'https://www.googleapis.com/auth/gmail.compose',
+	'https://www.googleapis.com/auth/gmail.modify',
+];
+
 // Set up OAuth credentials
-const oAuth2Client = new OAuth2Client(
-    'YOUR_CLIENT_ID',
-    'YOUR_CLIENT_SECRET',
-    'YOUR_REDIRECT_URI'
-);
+const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 // Set up Gmail API client
 const gmail = google.gmail({
 	version: 'v1',
 	auth: oAuth2Client,
 });
-// Scopes that we need for Gmail API
-const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 
 // Labels for labeling the emails
 const LABEL_NAME = 'Auto-Replied';
 
 // Authenticate the app and obtain an access token for the Gmail API
-async function authenticate() {
-	const url = oAuth2Client.generateAuthUrl({
-		access_type: 'offline',
-		scope: SCOPES,
-		prompt: 'consent',
-	});
-	console.log(`Authorize this app by visiting this URL: ${url}`);
-	const code = 'ENTER THE CODE FROM THE ABOVE URL';
+
+// Authenticate the app and start running it
+const url = oAuth2Client.generateAuthUrl({
+	access_type: 'offline',
+	scope: SCOPES,
+	prompt: 'consent',
+});
+
+app.get('/', async (req, res) => {
+	res.redirect(url);
+});
+
+app.get('/oauth2callback', async (req, res) => {
+	const { code } = req.query;
+
+	await authenticate(code);
+	runApp();
+});
+
+async function authenticate(code) {
 	const { tokens } = await oAuth2Client.getToken(code);
 	oAuth2Client.setCredentials(tokens);
 }
@@ -154,9 +175,4 @@ function runApp() {
 	}, randomInterval * 1000);
 }
 
-// Authenticate the app and start running it
-(async () => {
-	await authenticate();
-	runApp();
-})();
-
+app.listen(8001, () => console.log('Server running on port 8001'));
