@@ -2,13 +2,14 @@ const express = require('express');
 const { google } = require('googleapis');
 const { OAuth2Client } = require('google-auth-library');
 const { Buffer } = require('buffer');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 const app = express();
 
-const CLIENT_ID =
-	'288700057470-g0svhjpi310npkrdd3dmo4bsn1opfupf.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URI = 'http://localhost:8001/oauth2callback';
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
 
 // Scopes that we need for Gmail API
 const SCOPES = [
@@ -44,9 +45,12 @@ app.get('/', async (req, res) => {
 
 app.get('/oauth2callback', async (req, res) => {
 	const { code } = req.query;
+	const randomInterval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
 
 	await authenticate(code);
-	runApp();
+	setTimeout(async () => {
+		await checkEmails();
+	}, 5000);
 });
 
 async function authenticate(code) {
@@ -167,12 +171,12 @@ async function checkEmails() {
 	//setTimeout(checkEmails, interval * 1000);
 }
 // Run the app in random intervals between 45-120 seconds
-function runApp() {
-	const randomInterval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
-	setTimeout(async () => {
-		await checkEmails();
-		runApp();
-	}, randomInterval * 1000);
-}
+// function runApp() {
+// 	const randomInterval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
+// 	setTimeout(async () => {
+// 		await checkEmails();
+// 		runApp();
+// 	}, randomInterval * 1000);
+// }
 
-app.listen(8001, () => console.log('Server running on port 8001'));
+app.listen(8001, () => console.log('Server running on port 8001'));
