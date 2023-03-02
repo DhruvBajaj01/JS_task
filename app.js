@@ -31,9 +31,8 @@ const gmail = google.gmail({
 // Labels for labeling the emails
 const LABEL_NAME = 'Auto-Replied';
 
-// Authenticate the app and obtain an access token for the Gmail API
 
-// Authenticate the app and start running it
+
 const url = oAuth2Client.generateAuthUrl({
 	access_type: 'offline',
 	scope: SCOPES,
@@ -46,12 +45,9 @@ app.get('/', async (req, res) => {
 
 app.get('/oauth2callback', async (req, res) => {
 	const { code } = req.query;
-	const randomInterval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
 
 	await authenticate(code);
-	setTimeout(async () => {
-		await checkEmails();
-	}, 5000);
+	runApp();
 });
 
 async function authenticate(code) {
@@ -167,17 +163,15 @@ async function checkEmails() {
 		console.error(error);
 	}
 
-	// Check for new emails again after a random interval of 45 to 120 seconds
-	//const interval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
-	//setTimeout(checkEmails, interval * 1000);
+	
 }
 // Run the app in random intervals between 45-120 seconds
-// function runApp() {
-// 	const randomInterval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
-// 	setTimeout(async () => {
-// 		await checkEmails();
-// 		runApp();
-// 	}, randomInterval * 1000);
-// }
+function runApp() {
+	const randomInterval = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
+	setTimeout(async () => {
+		await checkEmails();
+		runApp();
+	}, randomInterval * 1000);
+}
 
-app.listen(8001, () => console.log('Server running on port 8001'));
+app.listen(8001, () => console.log('Server running on port 8001'));
